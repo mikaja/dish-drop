@@ -68,15 +68,19 @@ export default function MenuView({ restaurantId, posts }: MenuViewProps) {
     });
   };
 
-  // Find matching reviews for a menu item (fuzzy match on dish name)
+  // Find matching reviews for a menu item (fuzzy match on dish name), limited to 9 most recent
   const getMatchingReviews = (itemName: string): Post[] => {
     const normalizedItem = itemName.toLowerCase().trim();
-    return posts.filter(post => {
+    const matched = posts.filter(post => {
       const normalizedDish = post.dishName.toLowerCase().trim();
       return normalizedDish === normalizedItem ||
         normalizedDish.includes(normalizedItem) ||
         normalizedItem.includes(normalizedDish);
     });
+    // Sort by most recent and limit to 9
+    return matched
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 9);
   };
 
   if (isLoading) {
@@ -156,7 +160,6 @@ export default function MenuView({ restaurantId, posts }: MenuViewProps) {
                         {avgRating !== null ? (
                           <View style={styles.avgRatingContainer}>
                             <View style={[styles.avgRatingSquare, { backgroundColor: getRatingColor(avgRating) }]}>
-                              <Ionicons name="star" size={10} color="rgba(255,255,255,0.5)" style={{ position: 'absolute', top: 2, right: 2 }} />
                               <Text style={styles.avgRatingSquareText}>{avgRating % 1 === 0 ? avgRating : avgRating.toFixed(1)}</Text>
                             </View>
                             <Text style={styles.avgRatingLabel}>DD Avg</Text>

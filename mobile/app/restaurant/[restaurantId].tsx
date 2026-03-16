@@ -206,7 +206,6 @@ export default function RestaurantScreen() {
           </View>
           <View style={styles.statItem}>
             <View style={styles.ratingDisplay}>
-              <Ionicons name="star" size={18} color={Colors.warning} />
               <Text style={styles.statValue}>
                 {restaurant.averageRating ? restaurant.averageRating.toFixed(1) : 'New'}
               </Text>

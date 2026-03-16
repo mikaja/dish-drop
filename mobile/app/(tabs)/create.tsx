@@ -31,6 +31,8 @@ export default function CreateScreen() {
   const [currentStep, setCurrentStep] = useState<Step>('photo');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const scrollViewRef = useRef<ScrollView>(null);
+
   // Form data
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
@@ -303,7 +305,12 @@ export default function CreateScreen() {
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.container}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ paddingBottom: 200 }}
+        >
           <View style={styles.stepHeader}>
             <Pressable onPress={() => setCurrentStep('restaurant')}>
               <Ionicons name="arrow-back" size={24} color={Colors.text} />
@@ -423,6 +430,11 @@ export default function CreateScreen() {
                   placeholder="0.00"
                   placeholderTextColor={Colors.textMuted}
                   value={price}
+                  onFocus={() => {
+                    setTimeout(() => {
+                      scrollViewRef.current?.scrollToEnd({ animated: true });
+                    }, 300);
+                  }}
                   onChangeText={(text) => {
                     // Strip all non-digit characters
                     const digits = text.replace(/[^0-9]/g, '');

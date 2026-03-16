@@ -114,16 +114,16 @@ function SwipeablePost({ post, userLocation, onLike, onSave, onShare }: Swipeabl
                 source={{ uri: post.user.profileImage || 'https://via.placeholder.com/40' }}
                 style={styles.avatar}
               />
-              {/* Post-specific meals donated badge */}
-              {(post.mealsDonated != null && post.mealsDonated > 0) && (
-                <View style={styles.postMealsBadge}>
-                  <Ionicons name="heart" size={12} color={Colors.text} />
-                  <Text style={styles.postMealsBadgeText}>{post.mealsDonated}</Text>
-                </View>
-              )}
               <View>
                 <View style={styles.usernameRow}>
                   <Text style={styles.username}>@{post.user.username}</Text>
+                  {/* Post-specific meals donated badge - right of username */}
+                  {(post.mealsDonated != null && post.mealsDonated > 0) && (
+                    <View style={styles.postMealsBadge}>
+                      <Ionicons name="heart" size={10} color={Colors.text} />
+                      <Text style={styles.postMealsBadgeText}>{post.mealsDonated}</Text>
+                    </View>
+                  )}
                 </View>
                 {post.user.mealStreak && post.user.mealStreak > 0 && (
                   <View style={styles.streakBadge}>
@@ -137,8 +137,13 @@ function SwipeablePost({ post, userLocation, onLike, onSave, onShare }: Swipeabl
               </View>
             </Pressable>
 
-            <View style={[styles.ratingScoreBadge, { backgroundColor: getRatingColor(post.rating) }]}>
-              <Text style={styles.ratingScoreText}>{post.rating}</Text>
+            <View style={styles.ratingColumn}>
+              <View style={[styles.ratingScoreBadge, { backgroundColor: getRatingColor(post.rating) }]}>
+                <Text style={styles.ratingScoreText}>{post.rating}</Text>
+              </View>
+              {post.restaurant.averageRating != null && (
+                <Text style={styles.ddAvgText}>DD Avg {post.restaurant.averageRating.toFixed(1)}</Text>
+              )}
             </View>
           </View>
 
@@ -1016,17 +1021,20 @@ const styles = StyleSheet.create({
   postMealsBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 3,
-    backgroundColor: 'rgba(239, 68, 68, 0.7)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: BorderRadius.sm,
-    marginRight: Spacing.sm,
+    gap: 2,
+    backgroundColor: 'rgba(239, 68, 68, 0.25)',
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: BorderRadius.full,
   },
   postMealsBadgeText: {
-    color: Colors.text,
+    color: Colors.error,
     fontSize: FontSizes.xs,
-    fontWeight: 'bold',
+    fontWeight: '600',
+  },
+  ratingColumn: {
+    alignItems: 'center',
+    gap: 3,
   },
   ratingScoreBadge: {
     width: 40,
@@ -1044,6 +1052,14 @@ const styles = StyleSheet.create({
     color: Colors.background,
     fontSize: FontSizes.lg,
     fontWeight: 'bold',
+  },
+  ddAvgText: {
+    color: Colors.textSecondary,
+    fontSize: 10,
+    fontWeight: '600',
+    textShadowColor: 'rgba(0,0,0,1)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 6,
   },
   restaurantRow: {
     flexDirection: 'row',
