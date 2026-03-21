@@ -44,6 +44,7 @@ export default function CreateScreen() {
   const [cuisineType, setCuisineType] = useState('');
   const [donateMeals, setDonateMeals] = useState(0);
   const [isPrivate, setIsPrivate] = useState(false);
+  const [globalMealCount, setGlobalMealCount] = useState<number | null>(null);
 
   // Menu autocomplete
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -55,6 +56,13 @@ export default function CreateScreen() {
   const [nearbyRestaurants, setNearbyRestaurants] = useState<Restaurant[]>([]);
   const [restaurantSearch, setRestaurantSearch] = useState('');
   const [isLoadingRestaurants, setIsLoadingRestaurants] = useState(false);
+
+  useEffect(() => {
+    // Load global meal count for the donate section
+    api.getGlobalStats().then(({ stats }) => {
+      setGlobalMealCount(stats.totalMeals);
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (currentStep === 'restaurant') {
@@ -510,27 +518,54 @@ export default function CreateScreen() {
 
         {user && user.mealsBalance > 0 && (
           <View style={styles.inputGroup}>
-            <View style={styles.sliderLabelRow}>
-              <Text style={styles.label}>Donate Meals</Text>
-              <Text style={styles.donateValueText}>
-                {donateMeals} of {user.mealsBalance}
-              </Text>
-            </View>
-            <View style={styles.sliderContainer}>
-              <Text style={styles.sliderEndLabel}>0</Text>
-              <Slider
-                style={styles.slider}
-                minimumValue={0}
-                maximumValue={Math.min(user.mealsBalance, 5)}
-                step={1}
-                value={donateMeals}
-                onValueChange={(value: number) => setDonateMeals(value)}
-                minimumTrackTintColor={Colors.error}
-                maximumTrackTintColor={Colors.border}
-                thumbTintColor={Colors.error}
-              />
-              <Text style={styles.sliderEndLabel}>
-                {Math.min(user.mealsBalance, 5)}
+            <Text style={styles.label}>Donate Meals</Text>
+            <View style={styles.mealDonateContainer}>
+              {globalMealCount != null && (
+                <View style={styles.globalMealsRow}>
+                  <Ionicons name="heart" size={14} color={Colors.accent} />
+                  <Text style={styles.globalMealsCount}>
+                    {globalMealCount.toLocaleString()} meals donated globally
+                  </Text>
+                </View>
+              )}
+              <View style={styles.mealDonateRow}>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.mealButton,
+                    pressed && styles.mealButtonPressed,
+                    donateMeals <= 0 && styles.mealButtonDisabled,
+                  ]}
+                  onPress={() => setDonateMeals(Math.max(0, donateMeals - 1))}
+                  disabled={donateMeals <= 0}
+                >
+                  <Text style={[
+                    styles.mealButtonText,
+                    donateMeals <= 0 && styles.mealButtonTextDisabled,
+                  ]}>−</Text>
+                </Pressable>
+
+                <View style={styles.earthContainer}>
+                  <Text style={styles.earthEmoji}>🌍</Text>
+                  <Text style={styles.mealCount}>{donateMeals}</Text>
+                </View>
+
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.mealButton,
+                    pressed && styles.mealButtonPressed,
+                    donateMeals >= Math.min(user.mealsBalance, 5) && styles.mealButtonDisabled,
+                  ]}
+                  onPress={() => setDonateMeals(Math.min(Math.min(user.mealsBalance, 5), donateMeals + 1))}
+                  disabled={donateMeals >= Math.min(user.mealsBalance, 5)}
+                >
+                  <Text style={[
+                    styles.mealButtonText,
+                    donateMeals >= Math.min(user.mealsBalance, 5) && styles.mealButtonTextDisabled,
+                  ]}>+</Text>
+                </Pressable>
+              </View>
+              <Text style={styles.mealBalanceText}>
+                {user.mealsBalance} meals available
               </Text>
             </View>
           </View>
@@ -790,6 +825,75 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     width: 20,
     textAlign: 'center',
+  },
+  mealDonateContainer: {
+    alignItems: 'center',
+    paddingVertical: Spacing.lg,
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.lg,
+    marginTop: Spacing.sm,
+  },
+  globalMealsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: Spacing.md,
+  },
+  globalMealsCount: {
+    color: Colors.accent,
+    fontSize: FontSizes.sm,
+    fontWeight: '600',
+  },
+  mealDonateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.xl,
+  },
+  mealButton: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors.cardHover,
+    borderWidth: 2,
+    borderColor: Colors.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mealButtonPressed: {
+    backgroundColor: Colors.accent,
+    transform: [{ scale: 0.95 }],
+  },
+  mealButtonDisabled: {
+    borderColor: Colors.textMuted,
+    opacity: 0.4,
+  },
+  mealButtonText: {
+    color: Colors.accent,
+    fontSize: 28,
+    fontWeight: '700',
+    lineHeight: 32,
+  },
+  mealButtonTextDisabled: {
+    color: Colors.textMuted,
+  },
+  earthContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  earthEmoji: {
+    fontSize: 80,
+  },
+  mealCount: {
+    color: Colors.text,
+    fontSize: 42,
+    fontWeight: '800',
+    marginTop: Spacing.xs,
+  },
+  mealBalanceText: {
+    color: Colors.textSecondary,
+    fontSize: FontSizes.sm,
+    marginTop: Spacing.md,
   },
   ratingValueBadge: {
     paddingHorizontal: Spacing.sm + 2,
