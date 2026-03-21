@@ -334,7 +334,7 @@ export default function ExploreScreen() {
         <View style={[styles.markerContainer, isSelected && styles.markerSelected]}>
           <View style={[styles.markerBubble, isSelected && styles.markerBubbleSelected]}>
             <Text style={[styles.markerRating, isSelected && styles.markerRatingSelected]}>
-              {restaurant.averageRating?.toFixed(1) || 'New'}
+              {restaurant.averageRating != null ? Number(restaurant.averageRating).toFixed(1) : 'New'}
             </Text>
           </View>
           <View style={[styles.markerArrow, isSelected && styles.markerArrowSelected]} />
@@ -454,7 +454,7 @@ export default function ExploreScreen() {
     >
       <View style={styles.listItemLeft}>
         <View style={[styles.listItemRating, { backgroundColor: getRatingColor(restaurant.averageRating || 0) }]}>
-          <Text style={styles.listItemRatingText}>{restaurant.averageRating?.toFixed(1) || 'New'}</Text>
+          <Text style={styles.listItemRatingText}>{restaurant.averageRating != null ? Number(restaurant.averageRating).toFixed(1) : 'New'}</Text>
         </View>
       </View>
       <View style={styles.listItemContent}>
@@ -663,7 +663,7 @@ export default function ExploreScreen() {
                     <Text style={styles.restaurantName} numberOfLines={1}>{selectedRestaurant.name}</Text>
                     <View style={styles.restaurantMeta}>
                       <View style={[styles.ratingBadge, { backgroundColor: getRatingColor(selectedRestaurant.averageRating || 0) }]}>
-                        <Text style={styles.ratingText}>{selectedRestaurant.averageRating?.toFixed(1) || 'New'}</Text>
+                        <Text style={styles.ratingText}>{selectedRestaurant.averageRating != null ? Number(selectedRestaurant.averageRating).toFixed(1) : 'New'}</Text>
                       </View>
                       <Text style={styles.cuisineText}>
                         {selectedRestaurant.cuisineTypes?.slice(0, 2).join(' • ')}
