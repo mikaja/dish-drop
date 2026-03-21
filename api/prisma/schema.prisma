@@ -291,6 +291,11 @@ model Restaurant {
   posts              Post[]
   coupons            Coupon[]
   flashSponsorships  FlashSponsorship[]
+  claims             RestaurantClaim[]
+  sponsoredPosts     SponsoredPost[]
+  mysteryBoxes       MysteryBox[]
+  contentAppeals     ContentAppeal[]
+  analyticsSnapshots RestaurantAnalyticsSnapshot[]
 
   @@index([latitude, longitude])
   @@index([city])
@@ -575,4 +580,159 @@ model Notification {
   @@index([userId])
   @@index([isRead])
   @@index([createdAt])
+}
+
+// ============================================
+// RESTAURANT DASHBOARD & CLAIMS
+// ============================================
+
+model RestaurantClaim {
+  id              String   @id @default(cuid())
+  restaurantId    String
+  restaurant      Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  // Claimant info
+  contactName     String
+  contactEmail    String
+  contactPhone    String
+  role            String   // "owner", "manager"
+
+  // Verification
+  proofType       String   // "license", "utility_bill", "phone_verification"
+  proofUrl        String?  // Uploaded document URL
+  socialAccounts  Json?    // { instagram: "...", facebook: "...", twitter: "..." }
+
+  // Status
+  status          String   @default("pending") // "pending", "approved", "rejected"
+  reviewedAt      DateTime?
+  rejectionReason String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([restaurantId])
+  @@index([status])
+  @@index([contactEmail])
+}
+
+model SponsoredPost {
+  id              String     @id @default(cuid())
+  restaurantId    String
+  restaurant      Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  // Content
+  dishPhotoUrl    String
+  caption         String?    @db.Text
+  callToAction    String     // "get_directions", "reserve", "order_online"
+  actionUrl       String?    // Link for the CTA
+
+  // Targeting
+  targetRadius    Float      @default(5.0) // km
+  targetLatitude  Float?
+  targetLongitude Float?
+
+  // Budget
+  maxBudget       Float      // Total budget cap
+  costPerClick    Float      @default(0.50)
+  totalSpent      Float      @default(0)
+
+  // Metrics
+  impressions     Int        @default(0)
+  clicks          Int        @default(0)
+  reservations    Int        @default(0)
+
+  // Scheduling
+  startsAt        DateTime   @default(now())
+  endsAt          DateTime?
+  isActive        Boolean    @default(true)
+
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@index([restaurantId])
+  @@index([isActive])
+  @@index([targetLatitude, targetLongitude])
+}
+
+model MysteryBox {
+  id              String     @id @default(cuid())
+  restaurantId    String
+  restaurant      Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  // Offer
+  offerTitle      String
+  offerDescription String?   @db.Text
+  discountType    String     // "percentage", "fixed", "freeItem"
+  discountValue   Float
+
+  // Limits
+  targetRadius    Float      @default(5.0)
+  maxRedemptions  Int
+  currentRedemptions Int     @default(0)
+  budget          Float
+  costPerClaim    Float      @default(1.50)
+
+  // Timing - daily
+  activeDate      DateTime   // The date this box is active
+  expiresAt       DateTime
+  isActive        Boolean    @default(true)
+
+  // Metrics
+  opens           Int        @default(0)
+  claims          Int        @default(0)
+  redemptions     Int        @default(0)
+
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@index([restaurantId])
+  @@index([isActive])
+  @@index([activeDate])
+}
+
+model ContentAppeal {
+  id              String   @id @default(cuid())
+  restaurantId    String
+  restaurant      Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  postId          String
+
+  // Appeal details
+  reason          String   // "false_info", "defamatory", "abusive", "other"
+  description     String   @db.Text
+
+  // Status
+  status          String   @default("pending") // "pending", "under_review", "resolved", "dismissed"
+  resolution      String?  @db.Text
+  reviewedAt      DateTime?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([restaurantId])
+  @@index([postId])
+  @@index([status])
+}
+
+model RestaurantAnalyticsSnapshot {
+  id              String   @id @default(cuid())
+  restaurantId    String
+  restaurant      Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  // Period
+  date            DateTime @db.Date
+
+  // Traffic
+  profileViews    Int      @default(0)
+  totalSaves      Int      @default(0)
+  dishClicks      Int      @default(0)
+
+  // Engagement
+  newReviews      Int      @default(0)
+  averageRating   Float?
+
+  createdAt       DateTime @default(now())
+
+  @@unique([restaurantId, date])
+  @@index([restaurantId])
+  @@index([date])
 }
