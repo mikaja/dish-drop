@@ -399,7 +399,7 @@ export default function ExploreScreen() {
                 <Text style={styles.trendingRestaurant} numberOfLines={1}>{dish.restaurantName}</Text>
                 <View style={styles.trendingMeta}>
                   <View style={[styles.trendingRating, { backgroundColor: getRatingColor(dish.averageRating) }]}>
-                    <Text style={styles.trendingRatingText}>{dish.averageRating}</Text>
+                    <Text style={styles.trendingRatingText}>{dish.averageRating != null ? Number(dish.averageRating).toFixed(1) : 'New'}</Text>
                   </View>
                   <Text style={styles.trendingPosts}>{dish.postCount} drops</Text>
                 </View>
