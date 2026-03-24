@@ -45,6 +45,7 @@ export default function CreateScreen() {
   const [donateMeals, setDonateMeals] = useState(0);
   const [isPrivate, setIsPrivate] = useState(false);
   const [globalMealCount, setGlobalMealCount] = useState<number | null>(null);
+  const [mealMatchActive, setMealMatchActive] = useState<{ multiplier: number; endsAt: string } | null>(null);
 
   // Menu autocomplete
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -61,6 +62,13 @@ export default function CreateScreen() {
     // Load global meal count for the donate section
     api.getGlobalStats().then(({ stats }) => {
       setGlobalMealCount(stats.totalMeals);
+    }).catch(() => {});
+
+    // Check for active meal matching promo
+    api.getMealMatchPromo().then((res) => {
+      if (res?.promo?.active) {
+        setMealMatchActive({ multiplier: res.promo.multiplier, endsAt: res.promo.endsAt });
+      }
     }).catch(() => {});
   }, []);
 
@@ -237,14 +245,24 @@ export default function CreateScreen() {
           )}
         </View>
 
+        {imageUri && (
+          <Pressable
+            style={[styles.photoButton, { backgroundColor: Colors.accent, marginBottom: Spacing.md, alignSelf: 'center', paddingHorizontal: Spacing.xl }]}
+            onPress={() => setCurrentStep('restaurant')}
+          >
+            <Ionicons name="arrow-forward" size={24} color="#fff" />
+            <Text style={[styles.photoButtonText, { color: '#fff' }]}>Continue with this photo</Text>
+          </Pressable>
+        )}
+
         <View style={styles.photoButtons}>
           <Pressable style={styles.photoButton} onPress={takePhoto}>
             <Ionicons name="camera" size={24} color={Colors.text} />
-            <Text style={styles.photoButtonText}>Take Photo</Text>
+            <Text style={styles.photoButtonText}>{imageUri ? 'Retake Photo' : 'Take Photo'}</Text>
           </Pressable>
           <Pressable style={styles.photoButton} onPress={pickImage}>
             <Ionicons name="images" size={24} color={Colors.text} />
-            <Text style={styles.photoButtonText}>Choose from Library</Text>
+            <Text style={styles.photoButtonText}>{imageUri ? 'Choose Different' : 'Choose from Library'}</Text>
           </Pressable>
         </View>
       </View>
@@ -520,6 +538,14 @@ export default function CreateScreen() {
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Donate Meals</Text>
             <View style={styles.mealDonateContainer}>
+              {mealMatchActive && new Date(mealMatchActive.endsAt).getTime() > Date.now() && (
+                <View style={styles.mealMatchPromoTag}>
+                  <Ionicons name="flame" size={14} color="#fff" />
+                  <Text style={styles.mealMatchPromoText}>
+                    {mealMatchActive.multiplier}X MEAL MATCH ACTIVE — Your donation is doubled!
+                  </Text>
+                </View>
+              )}
               {globalMealCount != null && (
                 <View style={styles.globalMealsRow}>
                   <Ionicons name="heart" size={14} color={Colors.accent} />
@@ -825,6 +851,24 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     width: 20,
     textAlign: 'center',
+  },
+  mealMatchPromoTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FF6B35',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.sm,
+    gap: 6,
+    alignSelf: 'stretch',
+    marginHorizontal: Spacing.md,
+  },
+  mealMatchPromoText: {
+    color: '#fff',
+    fontSize: FontSizes.xs,
+    fontWeight: 'bold',
+    flex: 1,
   },
   mealDonateContainer: {
     alignItems: 'center',

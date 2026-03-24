@@ -80,10 +80,21 @@ export default function CollectionScreen() {
     }
   };
 
-  const renderItem = ({ item: post }: { item: Post }) => (
+  const openPostFeed = (index: number) => {
+    router.push({
+      pathname: '/post/feed',
+      params: {
+        postIds: items.map(p => p.id).join(','),
+        startIndex: index.toString(),
+        title: collection?.name || 'Collection',
+      },
+    });
+  };
+
+  const renderItem = ({ item: post, index }: { item: Post; index: number }) => (
     <Pressable
       style={styles.itemCard}
-      onPress={() => router.push(`/post/${post.id}`)}
+      onPress={() => openPostFeed(index)}
     >
       <Image source={{ uri: post.imageUrl }} style={styles.itemImage} />
       <View style={[styles.itemRating, { backgroundColor: getRatingColor(post.rating) }]}>

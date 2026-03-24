@@ -1086,6 +1086,24 @@ class ApiClient {
     return this.request('/sponsorships');
   }
 
+  async getMealMatchPromo(): Promise<{ promo: { active: boolean; multiplier: number; endsAt: string; title: string; description: string; mealsMatched: number; mealsGoal: number } | null }> {
+    if (USE_MOCK_DATA) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      return {
+        promo: {
+          active: true,
+          multiplier: 2,
+          endsAt: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString(),
+          title: 'Double Your Impact!',
+          description: 'Every meal you donate is matched 2X during this flash promo',
+          mealsMatched: 847,
+          mealsGoal: 2000,
+        },
+      };
+    }
+    return this.request('/sponsorships/meal-match');
+  }
+
   async getActiveSponsorship(): Promise<{ sponsorship: FlashSponsorship | null }> {
     if (USE_MOCK_DATA) {
       await new Promise(resolve => setTimeout(resolve, 200));

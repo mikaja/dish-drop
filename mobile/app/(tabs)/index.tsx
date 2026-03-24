@@ -137,14 +137,17 @@ function SwipeablePost({ post, userLocation, onLike, onSave, onShare }: Swipeabl
               </View>
             </Pressable>
 
-            <View style={styles.ratingColumn}>
+            <Pressable style={styles.ratingColumn} onPress={() => router.push(`/restaurant/${post.restaurant.id}`)}>
               <View style={[styles.ratingScoreBadge, { backgroundColor: getRatingColor(post.rating) }]}>
                 <Text style={styles.ratingScoreText}>{post.rating}</Text>
               </View>
               {post.restaurant.averageRating != null && (
-                <Text style={styles.ddAvgText}>DD Avg {post.restaurant.averageRating.toFixed(1)}</Text>
+                <View style={styles.ddAvgBadge}>
+                  <Text style={styles.ddAvgLabel}>DD</Text>
+                  <Text style={styles.ddAvgValue}>{post.restaurant.averageRating.toFixed(1)}</Text>
+                </View>
               )}
-            </View>
+            </Pressable>
           </View>
 
           {/* Action buttons (right side) */}
@@ -188,7 +191,9 @@ function SwipeablePost({ post, userLocation, onLike, onSave, onShare }: Swipeabl
 
           {/* Dish info (bottom) */}
           <View style={styles.dishInfo}>
-            <Text style={styles.dishName} numberOfLines={1}>{post.dishName}</Text>
+            <Pressable onPress={() => router.push(`/restaurant/${post.restaurant.id}`)}>
+              <Text style={styles.dishName} numberOfLines={1}>{post.dishName}</Text>
+            </Pressable>
 
             <Pressable
               onPress={() => router.push(`/restaurant/${post.restaurant.id}`)}
@@ -234,6 +239,15 @@ export default function HomeScreen() {
   const [mysteryBoxOpened, setMysteryBoxOpened] = useState(false);
   const [coinBalance, setCoinBalance] = useState(0);
   const [showFilterModal, setShowFilterModal] = useState(false);
+  const [mealMatchPromo, setMealMatchPromo] = useState<{
+    active: boolean;
+    multiplier: number;
+    endsAt: string;
+    title: string;
+    description: string;
+    mealsMatched: number;
+    mealsGoal: number;
+  } | null>(null);
   const [feedFilters, setFeedFilters] = useState<FeedFilterState>({
     cuisines: [],
     dietaryTags: [],
@@ -314,6 +328,16 @@ export default function HomeScreen() {
         setSponsorship(sponsorshipRes.sponsorship);
         setMysteryBox(mysteryBoxRes.mysteryBox);
         setCoinBalance(couponRes.coinBalance);
+
+        // Load active meal matching promo (if any)
+        try {
+          const promoRes = await api.getMealMatchPromo();
+          if (promoRes?.promo?.active) {
+            setMealMatchPromo(promoRes.promo);
+          }
+        } catch {
+          // Promo endpoint may not exist yet — silently ignore
+        }
       } catch (error) {
         console.error('Error loading extras:', error);
       }
@@ -463,6 +487,52 @@ export default function HomeScreen() {
     }
     return offsets;
   }, [headerHeight, filteredPosts.length]);
+
+  const renderMealMatchBanner = () => {
+    if (!mealMatchPromo || !mealMatchPromo.active) return null;
+
+    const timeLeft = new Date(mealMatchPromo.endsAt).getTime() - Date.now();
+    if (timeLeft <= 0) return null;
+
+    const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+    const timeStr = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+    const progress = (mealMatchPromo.mealsMatched / mealMatchPromo.mealsGoal) * 100;
+
+    return (
+      <Pressable
+        style={styles.mealMatchBanner}
+        onPress={() => router.push('/(tabs)/create')}
+      >
+        <LinearGradient
+          colors={['#FF6B35', '#FF8F00', '#FFB300']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.mealMatchGradient}
+        >
+          <View style={styles.mealMatchHeader}>
+            <View style={styles.mealMatchLiveBadge}>
+              <Ionicons name="flame" size={14} color="#fff" />
+              <Text style={styles.mealMatchLiveText}>{mealMatchPromo.multiplier}X MEAL MATCH</Text>
+            </View>
+            <View style={styles.mealMatchTimer}>
+              <Ionicons name="time-outline" size={12} color="rgba(255,255,255,0.9)" />
+              <Text style={styles.mealMatchTimerText}>{timeStr} left</Text>
+            </View>
+          </View>
+          <Text style={styles.mealMatchTitle}>{mealMatchPromo.title}</Text>
+          <Text style={styles.mealMatchDesc}>{mealMatchPromo.description}</Text>
+          <View style={styles.mealMatchProgressBar}>
+            <View style={[styles.mealMatchProgressFill, { width: `${Math.min(progress, 100)}%` }]} />
+          </View>
+          <View style={styles.mealMatchStats}>
+            <Text style={styles.mealMatchStat}>{mealMatchPromo.mealsMatched}/{mealMatchPromo.mealsGoal} meals donated</Text>
+            <Text style={styles.mealMatchCta}>Drop a dish now →</Text>
+          </View>
+        </LinearGradient>
+      </Pressable>
+    );
+  };
 
   const renderSponsorshipBanner = () => {
     if (!sponsorship || !sponsorship.isActive) return null;
@@ -633,6 +703,7 @@ export default function HomeScreen() {
             style={styles.feedHeader}
             onLayout={(e) => setHeaderHeight(e.nativeEvent.layout.height)}
           >
+            {renderMealMatchBanner()}
             {renderSponsorshipBanner()}
             {renderMysteryBox()}
           </View>
@@ -836,6 +907,85 @@ const styles = StyleSheet.create({
   },
   sponsorshipStatBold: {
     color: Colors.accent,
+    fontWeight: 'bold',
+  },
+  // Meal Match Flash Promo
+  mealMatchBanner: {
+    marginHorizontal: Spacing.md,
+    marginBottom: Spacing.sm,
+    borderRadius: BorderRadius.lg,
+    overflow: 'hidden',
+  },
+  mealMatchGradient: {
+    padding: Spacing.md,
+    borderRadius: BorderRadius.lg,
+  },
+  mealMatchHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  mealMatchLiveBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.25)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+    gap: 4,
+  },
+  mealMatchLiveText: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: 'bold',
+    letterSpacing: 0.5,
+  },
+  mealMatchTimer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+  },
+  mealMatchTimerText: {
+    color: 'rgba(255,255,255,0.9)',
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  mealMatchTitle: {
+    color: '#fff',
+    fontSize: FontSizes.lg,
+    fontWeight: 'bold',
+    marginBottom: 2,
+  },
+  mealMatchDesc: {
+    color: 'rgba(255,255,255,0.85)',
+    fontSize: FontSizes.sm,
+    marginBottom: 8,
+  },
+  mealMatchProgressBar: {
+    height: 6,
+    backgroundColor: 'rgba(0,0,0,0.2)',
+    borderRadius: 3,
+    overflow: 'hidden',
+    marginBottom: 6,
+  },
+  mealMatchProgressFill: {
+    height: '100%',
+    backgroundColor: '#fff',
+    borderRadius: 3,
+  },
+  mealMatchStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  mealMatchStat: {
+    color: 'rgba(255,255,255,0.85)',
+    fontSize: FontSizes.xs,
+  },
+  mealMatchCta: {
+    color: '#fff',
+    fontSize: FontSizes.sm,
     fontWeight: 'bold',
   },
   // Mystery Box
@@ -1053,13 +1203,31 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.lg,
     fontWeight: 'bold',
   },
-  ddAvgText: {
-    color: Colors.textSecondary,
-    fontSize: 10,
-    fontWeight: '600',
+  ddAvgBadge: {
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: BorderRadius.sm,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.25)',
+  },
+  ddAvgLabel: {
+    color: '#fff',
+    fontSize: 8,
+    fontWeight: '700',
+    letterSpacing: 0.5,
     textShadowColor: 'rgba(0,0,0,1)',
     textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 6,
+    textShadowRadius: 4,
+  },
+  ddAvgValue: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
+    textShadowColor: 'rgba(0,0,0,1)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
   restaurantRow: {
     flexDirection: 'row',

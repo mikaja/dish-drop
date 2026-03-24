@@ -304,11 +304,14 @@ export default function ProfileView({ userId, isTabView }: ProfileViewProps) {
         {activeTab === 'posts' && (
           posts.length > 0 ? (
             <View style={styles.postsGrid}>
-              {posts.map((post) => (
+              {posts.map((post, index) => (
                 <Pressable
                   key={post.id}
                   style={styles.postItem}
-                  onPress={() => router.push(`/post/${post.id}`)}
+                  onPress={() => router.push({
+                    pathname: '/post/feed',
+                    params: { postIds: posts.map(p => p.id).join(','), startIndex: index.toString(), title: 'Posts' },
+                  })}
                 >
                   <Image source={{ uri: post.imageUrl }} style={styles.postImage} />
                   <View style={[styles.postRating, { backgroundColor: getRatingColor(post.rating) }]}>
@@ -327,11 +330,14 @@ export default function ProfileView({ userId, isTabView }: ProfileViewProps) {
         {activeTab === 'likes' && (
           likes.length > 0 ? (
             <View style={styles.postsGrid}>
-              {likes.map((post) => (
+              {likes.map((post, index) => (
                 <Pressable
                   key={post.id}
                   style={styles.postItem}
-                  onPress={() => router.push(`/post/${post.id}`)}
+                  onPress={() => router.push({
+                    pathname: '/post/feed',
+                    params: { postIds: likes.map(p => p.id).join(','), startIndex: index.toString(), title: 'Liked Posts' },
+                  })}
                 >
                   <Image source={{ uri: post.imageUrl }} style={styles.postImage} />
                   <View style={[styles.postRating, { backgroundColor: getRatingColor(post.rating) }]}>
