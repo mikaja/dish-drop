@@ -128,7 +128,7 @@ export default function ImpactScreen() {
               <View style={styles.statCard}>
                 <Ionicons name="flame" size={24} color={Colors.warning} />
                 <Text style={styles.statValue}>{personalStats?.mealStreak || 0}</Text>
-                <Text style={styles.statLabel}>Day Streak</Text>
+                <Text style={styles.statLabel}>Week Streak</Text>
               </View>
               <View style={styles.statCard}>
                 <Ionicons name="camera" size={24} color={Colors.accent} />

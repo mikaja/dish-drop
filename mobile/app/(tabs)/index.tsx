@@ -128,7 +128,7 @@ function SwipeablePost({ post, userLocation, onLike, onSave, onShare }: Swipeabl
                 {post.user.mealStreak && post.user.mealStreak > 0 && (
                   <View style={styles.streakBadge}>
                     <Ionicons name="flame" size={12} color={Colors.warning} />
-                    <Text style={styles.streakText}>{post.user.mealStreak} day streak</Text>
+                    <Text style={styles.streakText}>{post.user.mealStreak} week streak</Text>
                   </View>
                 )}
                 <Text style={styles.topDateText}>

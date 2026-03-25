@@ -850,8 +850,10 @@ const styles = StyleSheet.create({
     zIndex: 10,
     flexDirection: 'row',
     padding: Spacing.md,
-    paddingTop: Platform.OS === 'ios' ? 60 : Spacing.md,
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.sm,
     gap: Spacing.sm,
+    backgroundColor: Colors.background,
   },
   filterButton: {
     width: 44,
@@ -926,7 +928,7 @@ const styles = StyleSheet.create({
   },
   searchAreaButton: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 120 : 80,
+    top: 76,
     alignSelf: 'center',
     flexDirection: 'row',
     alignItems: 'center',
@@ -1402,7 +1404,8 @@ const styles = StyleSheet.create({
   // List View
   listContainer: {
     flex: 1,
-    paddingTop: Platform.OS === 'ios' ? 120 : 80,
+    paddingTop: 76,
+    paddingBottom: 100,
   },
   listTitle: {
     color: Colors.text,
