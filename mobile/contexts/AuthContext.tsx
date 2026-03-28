@@ -42,20 +42,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               await safeRemoveItem(StorageKeys.AUTH_TOKEN);
             }
           }
-        } else {
-          // No token - auto-login with mock data for demo mode
-          try {
-            const { user: demoUser, token: demoToken } = await api.login({
-              email: 'demo@dishdrop.app',
-              password: 'demo',
-            });
-            await safeSetItem(StorageKeys.AUTH_TOKEN, demoToken);
-            await safeSetJSON(StorageKeys.USER_DATA, demoUser);
-            setUser(demoUser);
-          } catch {
-            // If auto-login fails, just continue without auth
-            console.log('Auto-login unavailable');
-          }
         }
       } catch (error) {
         console.error('Error loading user:', error);

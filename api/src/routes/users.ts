@@ -373,4 +373,95 @@ router.delete('/:userId/follow', authMiddleware, async (req: Request, res: Respo
   }
 });
 
+// POST /users/:userId/block - Block a user
+router.post('/:userId/block', authMiddleware, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { userId: blockedId } = req.params;
+    const userId = req.user!.userId;
+
+    if (userId === blockedId) {
+      res.status(400).json({ error: 'Cannot block yourself' });
+      return;
+    }
+
+    // Check if already blocked
+    const existing = await prisma.blockedUser.findUnique({
+      where: {
+        userId_blockedId: { userId, blockedId },
+      },
+    });
+
+    if (existing) {
+      res.status(400).json({ error: 'User already blocked' });
+      return;
+    }
+
+    // Block and unfollow in both directions
+    await prisma.$transaction([
+      prisma.blockedUser.create({
+        data: { userId, blockedId },
+      }),
+      prisma.follow.deleteMany({
+        where: {
+          OR: [
+            { followerId: userId, followingId: blockedId },
+            { followerId: blockedId, followingId: userId },
+          ],
+        },
+      }),
+    ]);
+
+    res.json({ success: true, message: 'User blocked' });
+  } catch (error) {
+    console.error('Block user error:', error);
+    res.status(500).json({ error: 'Failed to block user' });
+  }
+});
+
+// DELETE /users/:userId/block - Unblock a user
+router.delete('/:userId/block', authMiddleware, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { userId: blockedId } = req.params;
+    const userId = req.user!.userId;
+
+    await prisma.blockedUser.delete({
+      where: {
+        userId_blockedId: { userId, blockedId },
+      },
+    });
+
+    res.json({ success: true, message: 'User unblocked' });
+  } catch (error) {
+    console.error('Unblock user error:', error);
+    res.status(500).json({ error: 'Failed to unblock user' });
+  }
+});
+
+// GET /users/me/blocked - List blocked users
+router.get('/me/blocked', authMiddleware, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.userId;
+
+    const blocked = await prisma.blockedUser.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        blocked: {
+          select: {
+            id: true,
+            username: true,
+            name: true,
+            profileImage: true,
+          },
+        },
+      },
+    });
+
+    res.json({ blocked });
+  } catch (error) {
+    console.error('Get blocked users error:', error);
+    res.status(500).json({ error: 'Failed to get blocked users' });
+  }
+});
+
 export default router;

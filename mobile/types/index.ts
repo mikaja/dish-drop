@@ -436,6 +436,22 @@ export interface Notification {
   createdAt: string;
 }
 
+// Report types
+export interface ReportData {
+  targetType: 'post' | 'comment' | 'user';
+  targetId: string;
+  reason: string;
+  description?: string;
+}
+
+// Blocked user types
+export interface BlockedUserEntry {
+  id: string;
+  blockedId: string;
+  blocked: UserPreview;
+  createdAt: string;
+}
+
 // UI Filter/Sort state types
 export type ExploreSortOption = 'rating' | 'distance' | 'newest' | 'popular';
 export type FeedSortOption = 'rating' | 'distance' | 'newest' | 'popular';

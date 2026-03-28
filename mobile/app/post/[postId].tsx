@@ -23,6 +23,7 @@ import type { Post, Comment } from '../../types';
 import { formatDistanceToNow, format } from 'date-fns';
 import { Paths, File as ExpoFile } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
+import ReportModal from '../../components/ReportModal';
 
 export default function PostScreen() {
   const { postId } = useLocalSearchParams<{ postId: string }>();
@@ -32,6 +33,7 @@ export default function PostScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [newComment, setNewComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [reportTarget, setReportTarget] = useState<{ type: 'post' | 'comment' | 'user'; id: string } | null>(null);
 
   const loadPost = useCallback(async () => {
     try {
@@ -120,6 +122,58 @@ export default function PostScreen() {
     }
   };
 
+  const handlePostOptions = () => {
+    if (!post || !currentUser) return;
+    const isOwnPost = post.userId === currentUser.id;
+
+    const buttons: any[] = [];
+    if (!isOwnPost) {
+      buttons.push({
+        text: 'Report Post',
+        onPress: () => setReportTarget({ type: 'post', id: postId! }),
+      });
+      buttons.push({
+        text: 'Block User',
+        style: 'destructive',
+        onPress: () => {
+          Alert.alert(
+            `Block @${post.user.username}?`,
+            "They won't be able to see your posts or interact with you. You won't see their content in your feed.",
+            [
+              { text: 'Cancel', style: 'cancel' },
+              {
+                text: 'Block',
+                style: 'destructive',
+                onPress: async () => {
+                  try {
+                    await api.blockUser(post.userId);
+                    Alert.alert('User Blocked', `@${post.user.username} has been blocked.`);
+                    router.back();
+                  } catch {
+                    Alert.alert('Error', 'Failed to block user.');
+                  }
+                },
+              },
+            ]
+          );
+        },
+      });
+    }
+    buttons.push({ text: 'Cancel', style: 'cancel' });
+
+    Alert.alert(undefined as any, undefined as any, buttons);
+  };
+
+  const handleCommentReport = (commentId: string) => {
+    Alert.alert('Comment Options', undefined, [
+      {
+        text: 'Report Comment',
+        onPress: () => setReportTarget({ type: 'comment', id: commentId }),
+      },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
+  };
+
   const handleShare = async () => {
     if (!post) return;
     try {
@@ -157,7 +211,14 @@ export default function PostScreen() {
   };
 
   const renderComment = ({ item: comment }: { item: Comment }) => (
-    <View style={styles.commentItem}>
+    <Pressable
+      style={styles.commentItem}
+      onLongPress={() => {
+        if (currentUser && comment.userId !== currentUser.id) {
+          handleCommentReport(comment.id);
+        }
+      }}
+    >
       <Pressable onPress={() => router.push(`/profile/${comment.user.id}`)}>
         <Image
           source={{ uri: comment.user.profileImage || 'https://via.placeholder.com/40' }}
@@ -173,7 +234,7 @@ export default function PostScreen() {
         </View>
         <Text style={styles.commentText}>{comment.content}</Text>
       </View>
-    </View>
+    </Pressable>
   );
 
   if (isLoading) {
@@ -304,6 +365,12 @@ export default function PostScreen() {
               <Pressable style={styles.actionButton} onPress={handleShare}>
                 <Ionicons name="share-outline" size={22} color={Colors.text} />
               </Pressable>
+
+              {currentUser && post.userId !== currentUser.id && (
+                <Pressable style={styles.actionButton} onPress={handlePostOptions}>
+                  <Ionicons name="ellipsis-horizontal" size={22} color={Colors.text} />
+                </Pressable>
+              )}
             </View>
 
             {/* Time */}
@@ -364,6 +431,15 @@ export default function PostScreen() {
           </View>
         )}
       </KeyboardAvoidingView>
+
+      {reportTarget && (
+        <ReportModal
+          visible={!!reportTarget}
+          onClose={() => setReportTarget(null)}
+          targetType={reportTarget.type}
+          targetId={reportTarget.id}
+        />
+      )}
     </>
   );
 }

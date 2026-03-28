@@ -20,6 +20,7 @@ import { api } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
 import type { Post } from '../../types';
 import { format } from 'date-fns';
+import ReportModal from '../../components/ReportModal';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const POST_HEIGHT = SCREEN_HEIGHT - 120;
@@ -36,6 +37,7 @@ export default function PostFeedScreen() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
+  const [reportTarget, setReportTarget] = useState<{ type: 'post' | 'user'; id: string } | null>(null);
 
   useEffect(() => {
     loadPosts();
@@ -189,6 +191,48 @@ export default function PostFeedScreen() {
         <Pressable style={styles.actionButton} onPress={() => handleShare(post)}>
           <Ionicons name="share-outline" size={26} color="#fff" />
         </Pressable>
+        {user && post.userId !== user.id && (
+          <Pressable
+            style={styles.actionButton}
+            onPress={() => {
+              Alert.alert(undefined as any, undefined as any, [
+                {
+                  text: 'Report Post',
+                  onPress: () => setReportTarget({ type: 'post', id: post.id }),
+                },
+                {
+                  text: 'Block User',
+                  style: 'destructive',
+                  onPress: () => {
+                    Alert.alert(
+                      `Block @${post.user.username}?`,
+                      "They won't be able to see your posts or interact with you.",
+                      [
+                        { text: 'Cancel', style: 'cancel' },
+                        {
+                          text: 'Block',
+                          style: 'destructive',
+                          onPress: async () => {
+                            try {
+                              await api.blockUser(post.userId);
+                              Alert.alert('User Blocked', `@${post.user.username} has been blocked.`);
+                              router.back();
+                            } catch {
+                              Alert.alert('Error', 'Failed to block user.');
+                            }
+                          },
+                        },
+                      ]
+                    );
+                  },
+                },
+                { text: 'Cancel', style: 'cancel' },
+              ]);
+            }}
+          >
+            <Ionicons name="ellipsis-horizontal" size={26} color="#fff" />
+          </Pressable>
+        )}
       </View>
     </View>
   );
@@ -232,6 +276,15 @@ export default function PostFeedScreen() {
           index,
         })}
       />
+
+      {reportTarget && (
+        <ReportModal
+          visible={!!reportTarget}
+          onClose={() => setReportTarget(null)}
+          targetType={reportTarget.type}
+          targetId={reportTarget.id}
+        />
+      )}
     </View>
   );
 }

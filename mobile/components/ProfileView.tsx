@@ -9,6 +9,7 @@ import {
   RefreshControl,
   ActivityIndicator,
   Dimensions,
+  Alert,
 } from 'react-native';
 import { router, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,6 +18,7 @@ import { Colors, Spacing, FontSizes, BorderRadius, getRatingColor } from '../lib
 import { api } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import type { User, Post, Collection } from '../types';
+import ReportModal from './ReportModal';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const GRID_GAP = Spacing.xs;
@@ -42,6 +44,7 @@ export default function ProfileView({ userId, isTabView }: ProfileViewProps) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [likes, setLikes] = useState<Post[]>([]);
   const [collections, setCollections] = useState<Collection[]>([]);
+  const [showReportModal, setShowReportModal] = useState(false);
 
   const isOwnProfile = currentUser?.id === userId;
 
@@ -188,6 +191,14 @@ export default function ProfileView({ userId, isTabView }: ProfileViewProps) {
       >
         {/* Profile Header */}
         <View style={[styles.header, { paddingTop: Math.max(insets.top + Spacing.md, 60) }]}>
+          {isOwnProfile && (
+            <Pressable
+              style={styles.settingsButton}
+              onPress={() => router.push('/settings')}
+            >
+              <Ionicons name="settings-outline" size={24} color={Colors.text} />
+            </Pressable>
+          )}
           <Image
             source={{ uri: profile.profileImage || 'https://via.placeholder.com/100' }}
             style={styles.avatar}
@@ -251,6 +262,46 @@ export default function ProfileView({ userId, isTabView }: ProfileViewProps) {
               >
                 {isFollowing ? 'Following' : 'Follow'}
               </Text>
+            </Pressable>
+            <Pressable
+              style={styles.optionsButton}
+              onPress={() => {
+                Alert.alert(undefined as any, undefined as any, [
+                  {
+                    text: 'Report User',
+                    onPress: () => setShowReportModal(true),
+                  },
+                  {
+                    text: 'Block User',
+                    style: 'destructive',
+                    onPress: () => {
+                      Alert.alert(
+                        `Block @${profile.username}?`,
+                        "They won't be able to see your posts or interact with you. You won't see their content in your feed.",
+                        [
+                          { text: 'Cancel', style: 'cancel' },
+                          {
+                            text: 'Block',
+                            style: 'destructive',
+                            onPress: async () => {
+                              try {
+                                await api.blockUser(userId);
+                                Alert.alert('User Blocked', `@${profile.username} has been blocked.`);
+                                router.back();
+                              } catch {
+                                Alert.alert('Error', 'Failed to block user.');
+                              }
+                            },
+                          },
+                        ]
+                      );
+                    },
+                  },
+                  { text: 'Cancel', style: 'cancel' },
+                ]);
+              }}
+            >
+              <Ionicons name="ellipsis-horizontal" size={20} color={Colors.text} />
             </Pressable>
           </View>
         )}
@@ -379,6 +430,15 @@ export default function ProfileView({ userId, isTabView }: ProfileViewProps) {
           )
         )}
       </ScrollView>
+
+      {showReportModal && (
+        <ReportModal
+          visible={showReportModal}
+          onClose={() => setShowReportModal(false)}
+          targetType="user"
+          targetId={userId}
+        />
+      )}
     </>
   );
 }
@@ -406,9 +466,17 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     padding: Spacing.lg,
     paddingTop: 60,
     gap: Spacing.lg,
+  },
+  settingsButton: {
+    position: 'absolute',
+    top: 60,
+    right: Spacing.lg,
+    zIndex: 1,
+    padding: Spacing.xs,
   },
   avatar: {
     width: 90,
@@ -488,6 +556,16 @@ const styles = StyleSheet.create({
   },
   followingButtonText: {
     color: Colors.text,
+  },
+  optionsButton: {
+    backgroundColor: Colors.card,
+    borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   editButton: {
     flex: 1,

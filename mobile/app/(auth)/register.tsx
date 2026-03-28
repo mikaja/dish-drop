@@ -24,6 +24,7 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validateForm = () => {
@@ -55,6 +56,10 @@ export default function RegisterScreen() {
 
     if (password !== confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
+    }
+
+    if (!agreedToTerms) {
+      newErrors.terms = 'You must agree to the Terms of Service and Privacy Policy';
     }
 
     setErrors(newErrors);
@@ -182,10 +187,35 @@ export default function RegisterScreen() {
             )}
           </View>
 
+          {/* Terms Agreement */}
+          <View style={styles.termsContainer}>
+            <Pressable
+              style={styles.checkboxRow}
+              onPress={() => setAgreedToTerms(!agreedToTerms)}
+            >
+              <Ionicons
+                name={agreedToTerms ? 'checkbox' : 'square-outline'}
+                size={22}
+                color={agreedToTerms ? Colors.accent : Colors.textSecondary}
+              />
+              <Text style={styles.termsText}>
+                I agree to the{' '}
+              </Text>
+              <Pressable onPress={() => router.push('/terms')}>
+                <Text style={styles.termsLink}>Terms of Service</Text>
+              </Pressable>
+              <Text style={styles.termsText}> and </Text>
+              <Pressable onPress={() => router.push('/privacy')}>
+                <Text style={styles.termsLink}>Privacy Policy</Text>
+              </Pressable>
+            </Pressable>
+            {errors.terms && <Text style={styles.errorText}>{errors.terms}</Text>}
+          </View>
+
           <Pressable
-            style={[styles.button, isLoading && styles.buttonDisabled]}
+            style={[styles.button, (isLoading || !agreedToTerms) && styles.buttonDisabled]}
             onPress={handleRegister}
-            disabled={isLoading}
+            disabled={isLoading || !agreedToTerms}
           >
             {isLoading ? (
               <ActivityIndicator color={Colors.background} />
@@ -271,6 +301,24 @@ const styles = StyleSheet.create({
   errorText: {
     color: Colors.error,
     fontSize: FontSizes.sm,
+  },
+  termsContainer: {
+    gap: Spacing.xs,
+  },
+  checkboxRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 2,
+  },
+  termsText: {
+    color: Colors.textSecondary,
+    fontSize: FontSizes.sm,
+  },
+  termsLink: {
+    color: Colors.accent,
+    fontSize: FontSizes.sm,
+    fontWeight: '600',
   },
   button: {
     backgroundColor: Colors.accent,

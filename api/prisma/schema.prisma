@@ -50,6 +50,9 @@ model User {
   isPrivate     Boolean   @default(false)
   pushEnabled   Boolean   @default(true)
 
+  // Legal
+  termsAcceptedAt DateTime?
+
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -69,6 +72,11 @@ model User {
   // Gamification
   coupons       UserCoupon[]
   flashDrops    FlashSponsorshipDrop[]
+
+  // Moderation
+  reports           Report[]       @relation("reportsMade")
+  blocksInitiated   BlockedUser[]  @relation("blocksInitiated")
+  blocksReceived    BlockedUser[]  @relation("blocksReceived")
 
   @@index([teamId])
   @@index([latitude, longitude])
@@ -735,4 +743,43 @@ model RestaurantAnalyticsSnapshot {
   @@unique([restaurantId, date])
   @@index([restaurantId])
   @@index([date])
+}
+
+// ============================================
+// CONTENT MODERATION
+// ============================================
+
+model Report {
+  id          String    @id @default(cuid())
+  reporterId  String
+  reporter    User      @relation("reportsMade", fields: [reporterId], references: [id], onDelete: Cascade)
+
+  targetType  String    // "post", "comment", "user"
+  targetId    String
+  reason      String    // "spam", "harassment", "hate_speech", "nudity", "violence", "other"
+  description String?   @db.Text
+
+  status      String    @default("pending") // "pending", "reviewed", "resolved", "dismissed"
+  resolvedAt  DateTime?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([reporterId])
+  @@index([targetType, targetId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model BlockedUser {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation("blocksInitiated", fields: [userId], references: [id], onDelete: Cascade)
+  blockedId String
+  blocked   User     @relation("blocksReceived", fields: [blockedId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, blockedId])
+  @@index([userId])
+  @@index([blockedId])
 }

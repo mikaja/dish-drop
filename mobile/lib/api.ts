@@ -28,6 +28,8 @@ import type {
   MysteryBox,
   TrendingDish,
   SponsoredPost,
+  ReportData,
+  BlockedUserEntry,
 } from '../types';
 import {
   mockPosts,
@@ -1165,6 +1167,54 @@ class ApiClient {
       return { sponsored: mockSponsoredPost };
     }
     return this.request('/sponsored/feed');
+  }
+
+  // Report content
+  async reportContent(data: ReportData): Promise<{ success: boolean }> {
+    if (USE_MOCK_DATA) {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      return { success: true };
+    }
+    return this.request('/moderation/reports', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // Block user
+  async blockUser(userId: string): Promise<{ success: boolean }> {
+    if (USE_MOCK_DATA) {
+      await new Promise(resolve => setTimeout(resolve, 200));
+      return { success: true };
+    }
+    return this.request(`/users/${userId}/block`, { method: 'POST' });
+  }
+
+  // Unblock user
+  async unblockUser(userId: string): Promise<{ success: boolean }> {
+    if (USE_MOCK_DATA) {
+      await new Promise(resolve => setTimeout(resolve, 200));
+      return { success: true };
+    }
+    return this.request(`/users/${userId}/block`, { method: 'DELETE' });
+  }
+
+  // Get blocked users
+  async getBlockedUsers(): Promise<{ blocked: BlockedUserEntry[] }> {
+    if (USE_MOCK_DATA) {
+      await new Promise(resolve => setTimeout(resolve, 200));
+      return { blocked: [] };
+    }
+    return this.request('/users/me/blocked');
+  }
+
+  // Delete account
+  async deleteAccount(): Promise<{ success: boolean }> {
+    if (USE_MOCK_DATA) {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return { success: true };
+    }
+    return this.request('/auth/account', { method: 'DELETE' });
   }
 }
 

@@ -55,6 +55,7 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
         passwordHash,
         username,
         name,
+        termsAcceptedAt: new Date(),
       },
       select: {
         id: true,
@@ -233,6 +234,36 @@ router.put('/update-location', authMiddleware, async (req: Request, res: Respons
   } catch (error) {
     console.error('Update location error:', error);
     res.status(500).json({ error: 'Failed to update location' });
+  }
+});
+
+// DELETE /auth/account - Delete user account and all data
+router.delete('/account', authMiddleware, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.userId;
+
+    // Verify user exists
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    // Delete user — most relations cascade via onDelete: Cascade
+    // But some models don't have direct cascade, so delete them explicitly
+    await prisma.$transaction([
+      prisma.report.deleteMany({ where: { reporterId: userId } }),
+      prisma.blockedUser.deleteMany({
+        where: { OR: [{ userId }, { blockedId: userId }] },
+      }),
+      prisma.notification.deleteMany({ where: { userId } }),
+      prisma.user.delete({ where: { id: userId } }),
+    ]);
+
+    res.json({ success: true, message: 'Account deleted' });
+  } catch (error) {
+    console.error('Delete account error:', error);
+    res.status(500).json({ error: 'Failed to delete account' });
   }
 });
 
