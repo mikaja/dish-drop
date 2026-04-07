@@ -8,7 +8,7 @@ const router = Router();
 // GET /coupons - Get all available coupons
 router.get('/', optionalAuth, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { restaurantId } = req.query;
+    const { restaurantId } = req.query as { restaurantId?: string };
 
     const coupons = await prisma.coupon.findMany({
       where: {
@@ -95,7 +95,7 @@ router.get('/mine', authMiddleware, async (req: Request, res: Response): Promise
 // POST /coupons/:id/claim - Claim a coupon with coins
 router.post('/:id/claim', authMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
-    const couponId = req.params.id;
+    const { id: couponId } = req.params as { id: string };
     const userId = req.user!.userId;
 
     // Get coupon and user
@@ -186,7 +186,7 @@ router.post('/:id/claim', authMiddleware, async (req: Request, res: Response): P
 // POST /coupons/:id/use - Mark coupon as used
 router.post('/:id/use', authMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
-    const userCouponId = req.params.id;
+    const { id: userCouponId } = req.params as { id: string };
     const userId = req.user!.userId;
 
     const userCoupon = await prisma.userCoupon.findFirst({

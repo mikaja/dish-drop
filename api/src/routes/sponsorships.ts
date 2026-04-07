@@ -65,8 +65,9 @@ router.get('/', optionalAuth, async (req: Request, res: Response): Promise<void>
 // GET /sponsorships/:id - Get single sponsorship details
 router.get('/:id', optionalAuth, async (req: Request, res: Response): Promise<void> => {
   try {
+    const { id } = req.params as { id: string };
     const sponsorship = await prisma.flashSponsorship.findUnique({
-      where: { id: req.params.id },
+      where: { id },
       include: {
         restaurant: {
           select: {
@@ -163,7 +164,7 @@ router.get('/:id', optionalAuth, async (req: Request, res: Response): Promise<vo
 // This is called automatically when posting at a sponsored restaurant
 router.post('/:id/drop', authMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
-    const sponsorshipId = req.params.id;
+    const { id: sponsorshipId } = req.params as { id: string };
     const userId = req.user!.userId;
     const { postId } = req.body;
 
@@ -251,9 +252,10 @@ router.post('/:id/drop', authMiddleware, async (req: Request, res: Response): Pr
 // GET /sponsorships/restaurant/:restaurantId - Get active sponsorships for a restaurant
 router.get('/restaurant/:restaurantId', async (req: Request, res: Response): Promise<void> => {
   try {
+    const { restaurantId } = req.params as { restaurantId: string };
     const sponsorships = await prisma.flashSponsorship.findMany({
       where: {
-        restaurantId: req.params.restaurantId,
+        restaurantId,
         isActive: true,
         endsAt: { gt: new Date() },
       },

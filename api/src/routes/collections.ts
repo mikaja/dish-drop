@@ -36,7 +36,17 @@ router.get('/', authMiddleware, async (req: Request, res: Response): Promise<voi
           },
         },
       },
-    });
+    }) as Array<{
+      id: string;
+      name: string;
+      description: string | null;
+      coverImage: string | null;
+      isPublic: boolean;
+      isDefault: boolean;
+      itemCount: number;
+      createdAt: Date;
+      items: Array<{ post: { thumbnailUrl: string | null; imageUrl: string } }>;
+    }>;
 
     // Transform to include preview images
     const collectionsWithPreviews = collections.map((c) => ({
@@ -55,7 +65,7 @@ router.get('/', authMiddleware, async (req: Request, res: Response): Promise<voi
 // GET /collections/public - Get public collections (for discovery)
 router.get('/public', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { userId, cursor, limit = '20' } = req.query;
+    const { userId, cursor, limit = '20' } = req.query as { userId?: string; cursor?: string; limit?: string };
 
     let whereClause: Record<string, unknown> = { isPublic: true };
 
@@ -95,7 +105,16 @@ router.get('/public', async (req: Request, res: Response): Promise<void> => {
           },
         },
       },
-    });
+    }) as Array<{
+      id: string;
+      name: string;
+      description: string | null;
+      coverImage: string | null;
+      itemCount: number;
+      createdAt: Date;
+      user: { id: string; username: string; profileImage: string | null };
+      items: Array<{ post: { thumbnailUrl: string | null; imageUrl: string } }>;
+    }>;
 
     const hasMore = collections.length > parseInt(limit as string);
     if (hasMore) collections.pop();
@@ -150,8 +169,8 @@ router.post('/', authMiddleware, async (req: Request, res: Response): Promise<vo
 // GET /collections/:collectionId - Get collection with items
 router.get('/:collectionId', optionalAuth, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { collectionId } = req.params;
-    const { cursor, limit = '20' } = req.query;
+    const { collectionId } = req.params as { collectionId: string };
+    const { cursor, limit = '20' } = req.query as { cursor?: string; limit?: string };
 
     const collection = await prisma.collection.findUnique({
       where: { id: collectionId },
@@ -209,7 +228,7 @@ router.get('/:collectionId', optionalAuth, async (req: Request, res: Response): 
           },
         },
       },
-    });
+    }) as Array<{ id: string; addedAt: Date; post: unknown }>;
 
     const hasMore = items.length > parseInt(limit as string);
     if (hasMore) items.pop();
@@ -228,7 +247,7 @@ router.get('/:collectionId', optionalAuth, async (req: Request, res: Response): 
 // PUT /collections/:collectionId - Update collection
 router.put('/:collectionId', authMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { collectionId } = req.params;
+    const { collectionId } = req.params as { collectionId: string };
 
     const collection = await prisma.collection.findUnique({
       where: { id: collectionId },
@@ -277,7 +296,7 @@ router.put('/:collectionId', authMiddleware, async (req: Request, res: Response)
 // DELETE /collections/:collectionId - Delete collection
 router.delete('/:collectionId', authMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { collectionId } = req.params;
+    const { collectionId } = req.params as { collectionId: string };
 
     const collection = await prisma.collection.findUnique({
       where: { id: collectionId },
@@ -310,7 +329,7 @@ router.delete('/:collectionId', authMiddleware, async (req: Request, res: Respon
 // POST /collections/:collectionId/items - Add post to collection
 router.post('/:collectionId/items', authMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { collectionId } = req.params;
+    const { collectionId } = req.params as { collectionId: string };
     const { postId } = req.body;
 
     if (!postId) {
@@ -362,7 +381,7 @@ router.post('/:collectionId/items', authMiddleware, async (req: Request, res: Re
 // DELETE /collections/:collectionId/items/:postId - Remove from collection
 router.delete('/:collectionId/items/:postId', authMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { collectionId, postId } = req.params;
+    const { collectionId, postId } = req.params as { collectionId: string; postId: string };
 
     const collection = await prisma.collection.findUnique({
       where: { id: collectionId },

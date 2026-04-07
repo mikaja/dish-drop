@@ -18,7 +18,16 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
       search,
       cursor,
       limit = '20',
-    } = req.query;
+    } = req.query as {
+      lat?: string;
+      lng?: string;
+      radius?: string;
+      cuisine?: string;
+      priceLevel?: string;
+      search?: string;
+      cursor?: string;
+      limit?: string;
+    };
 
     let whereClause: Record<string, unknown> = {};
 
@@ -104,7 +113,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
 // GET /restaurants/nearby - Get nearby restaurants for post creation
 router.get('/nearby', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { lat, lng, limit = '10' } = req.query;
+    const { lat, lng, limit = '10' } = req.query as { lat?: string; lng?: string; limit?: string };
 
     if (!lat || !lng) {
       res.status(400).json({ error: 'Location required' });
@@ -149,7 +158,7 @@ router.get('/nearby', async (req: Request, res: Response): Promise<void> => {
 // GET /restaurants/:restaurantId - Get single restaurant
 router.get('/:restaurantId', optionalAuth, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { restaurantId } = req.params;
+    const { restaurantId } = req.params as { restaurantId: string };
 
     // Try by ID first, then by slug
     let restaurant = await prisma.restaurant.findUnique({
@@ -177,7 +186,7 @@ router.get('/:restaurantId', optionalAuth, async (req: Request, res: Response): 
 // GET /restaurants/:restaurantId/menu - Get restaurant menu data
 router.get('/:restaurantId/menu', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { restaurantId } = req.params;
+    const { restaurantId } = req.params as { restaurantId: string };
 
     const restaurant = await prisma.restaurant.findUnique({
       where: { id: restaurantId },
@@ -203,8 +212,8 @@ router.get('/:restaurantId/menu', async (req: Request, res: Response): Promise<v
 // GET /restaurants/:restaurantId/posts - Get restaurant's posts
 router.get('/:restaurantId/posts', optionalAuth, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { restaurantId } = req.params;
-    const { sort = 'recent', cursor, limit = '20' } = req.query;
+    const { restaurantId } = req.params as { restaurantId: string };
+    const { sort = 'recent', cursor, limit = '20' } = req.query as { sort?: string; cursor?: string; limit?: string };
 
     let orderBy: Record<string, string>;
     switch (sort) {

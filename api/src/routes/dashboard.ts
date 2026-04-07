@@ -74,7 +74,7 @@ router.post('/claim', async (req: Request, res: Response): Promise<void> => {
 // GET /dashboard/claims/:restaurantId - Get claim status
 router.get('/claims/:restaurantId', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { restaurantId } = req.params;
+    const { restaurantId } = req.params as { restaurantId: string };
     const claims = await prisma.restaurantClaim.findMany({
       where: { restaurantId },
       orderBy: { createdAt: 'desc' },
@@ -89,7 +89,7 @@ router.get('/claims/:restaurantId', async (req: Request, res: Response): Promise
 // POST /dashboard/claims/:claimId/approve - Admin: approve a claim
 router.post('/claims/:claimId/approve', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { claimId } = req.params;
+    const { claimId } = req.params as { claimId: string };
 
     const claim = await prisma.restaurantClaim.findUnique({ where: { id: claimId } });
     if (!claim) {
@@ -162,7 +162,7 @@ router.get('/my-restaurants', async (req: Request, res: Response): Promise<void>
 // GET /dashboard/:restaurantId/overview - Get dashboard overview
 router.get('/:restaurantId/overview', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { restaurantId } = req.params;
+    const { restaurantId } = req.params as { restaurantId: string };
     const userId = req.user!.userId;
 
     const isOwner = await verifyOwnership(userId, restaurantId);
@@ -226,7 +226,7 @@ router.get('/:restaurantId/overview', async (req: Request, res: Response): Promi
 // POST /dashboard/:restaurantId/sponsored-posts - Create sponsored post
 router.post('/:restaurantId/sponsored-posts', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { restaurantId } = req.params;
+    const { restaurantId } = req.params as { restaurantId: string };
     const userId = req.user!.userId;
 
     const isOwner = await verifyOwnership(userId, restaurantId);
@@ -271,7 +271,7 @@ router.post('/:restaurantId/sponsored-posts', async (req: Request, res: Response
 // GET /dashboard/:restaurantId/sponsored-posts - List sponsored posts
 router.get('/:restaurantId/sponsored-posts', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { restaurantId } = req.params;
+    const { restaurantId } = req.params as { restaurantId: string };
     const userId = req.user!.userId;
 
     const isOwner = await verifyOwnership(userId, restaurantId);
@@ -295,7 +295,7 @@ router.get('/:restaurantId/sponsored-posts', async (req: Request, res: Response)
 // PUT /dashboard/:restaurantId/sponsored-posts/:postId - Update sponsored post
 router.put('/:restaurantId/sponsored-posts/:postId', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { restaurantId, postId } = req.params;
+    const { restaurantId, postId } = req.params as { restaurantId: string; postId: string };
     const userId = req.user!.userId;
 
     const isOwner = await verifyOwnership(userId, restaurantId);
@@ -331,7 +331,7 @@ router.put('/:restaurantId/sponsored-posts/:postId', async (req: Request, res: R
 // POST /dashboard/:restaurantId/flash-sponsorships - Create flash sponsorship
 router.post('/:restaurantId/flash-sponsorships', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { restaurantId } = req.params;
+    const { restaurantId } = req.params as { restaurantId: string };
     const userId = req.user!.userId;
 
     const isOwner = await verifyOwnership(userId, restaurantId);
@@ -373,7 +373,7 @@ router.post('/:restaurantId/flash-sponsorships', async (req: Request, res: Respo
 // GET /dashboard/:restaurantId/flash-sponsorships - List restaurant's flash sponsorships
 router.get('/:restaurantId/flash-sponsorships', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { restaurantId } = req.params;
+    const { restaurantId } = req.params as { restaurantId: string };
     const userId = req.user!.userId;
 
     const isOwner = await verifyOwnership(userId, restaurantId);
@@ -402,7 +402,7 @@ router.get('/:restaurantId/flash-sponsorships', async (req: Request, res: Respon
 // POST /dashboard/:restaurantId/mystery-boxes - Create mystery box
 router.post('/:restaurantId/mystery-boxes', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { restaurantId } = req.params;
+    const { restaurantId } = req.params as { restaurantId: string };
     const userId = req.user!.userId;
 
     const isOwner = await verifyOwnership(userId, restaurantId);
@@ -444,7 +444,7 @@ router.post('/:restaurantId/mystery-boxes', async (req: Request, res: Response):
 // GET /dashboard/:restaurantId/mystery-boxes - List mystery boxes
 router.get('/:restaurantId/mystery-boxes', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { restaurantId } = req.params;
+    const { restaurantId } = req.params as { restaurantId: string };
     const userId = req.user!.userId;
 
     const isOwner = await verifyOwnership(userId, restaurantId);
@@ -472,7 +472,7 @@ router.get('/:restaurantId/mystery-boxes', async (req: Request, res: Response): 
 // POST /dashboard/:restaurantId/coupons - Create coupon
 router.post('/:restaurantId/coupons', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { restaurantId } = req.params;
+    const { restaurantId } = req.params as { restaurantId: string };
     const userId = req.user!.userId;
 
     const isOwner = await verifyOwnership(userId, restaurantId);
@@ -513,7 +513,7 @@ router.post('/:restaurantId/coupons', async (req: Request, res: Response): Promi
 // GET /dashboard/:restaurantId/coupons - List restaurant's coupons with stats
 router.get('/:restaurantId/coupons', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { restaurantId } = req.params;
+    const { restaurantId } = req.params as { restaurantId: string };
     const userId = req.user!.userId;
 
     const isOwner = await verifyOwnership(userId, restaurantId);
@@ -532,7 +532,7 @@ router.get('/:restaurantId/coupons', async (req: Request, res: Response): Promis
         },
       },
       orderBy: { createdAt: 'desc' },
-    });
+    }) as Array<{ id: string; title: string; coinCost: number; claimedCount: number; isActive: boolean; createdAt: Date; _count: { userCoupons: number }; userCoupons: Array<{ id: string }> }>;
 
     const couponsWithStats = coupons.map((c) => ({
       ...c,
@@ -555,7 +555,7 @@ router.get('/:restaurantId/coupons', async (req: Request, res: Response): Promis
 // GET /dashboard/:restaurantId/menu - Get current menu
 router.get('/:restaurantId/menu', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { restaurantId } = req.params;
+    const { restaurantId } = req.params as { restaurantId: string };
     const userId = req.user!.userId;
 
     const isOwner = await verifyOwnership(userId, restaurantId);
@@ -579,7 +579,7 @@ router.get('/:restaurantId/menu', async (req: Request, res: Response): Promise<v
 // PUT /dashboard/:restaurantId/menu - Update entire menu
 router.put('/:restaurantId/menu', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { restaurantId } = req.params;
+    const { restaurantId } = req.params as { restaurantId: string };
     const userId = req.user!.userId;
 
     const isOwner = await verifyOwnership(userId, restaurantId);
@@ -609,7 +609,7 @@ router.put('/:restaurantId/menu', async (req: Request, res: Response): Promise<v
 // POST /dashboard/:restaurantId/menu/items - Add a menu item to a category
 router.post('/:restaurantId/menu/items', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { restaurantId } = req.params;
+    const { restaurantId } = req.params as { restaurantId: string };
     const userId = req.user!.userId;
 
     const isOwner = await verifyOwnership(userId, restaurantId);
@@ -665,7 +665,7 @@ router.post('/:restaurantId/menu/items', async (req: Request, res: Response): Pr
 // POST /dashboard/:restaurantId/appeals - Create content appeal
 router.post('/:restaurantId/appeals', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { restaurantId } = req.params;
+    const { restaurantId } = req.params as { restaurantId: string };
     const userId = req.user!.userId;
 
     const isOwner = await verifyOwnership(userId, restaurantId);
@@ -707,7 +707,7 @@ router.post('/:restaurantId/appeals', async (req: Request, res: Response): Promi
 // GET /dashboard/:restaurantId/appeals - List appeals
 router.get('/:restaurantId/appeals', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { restaurantId } = req.params;
+    const { restaurantId } = req.params as { restaurantId: string };
     const userId = req.user!.userId;
 
     const isOwner = await verifyOwnership(userId, restaurantId);
@@ -735,7 +735,7 @@ router.get('/:restaurantId/appeals', async (req: Request, res: Response): Promis
 // GET /dashboard/:restaurantId/analytics - Get detailed analytics
 router.get('/:restaurantId/analytics', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { restaurantId } = req.params;
+    const { restaurantId } = req.params as { restaurantId: string };
     const userId = req.user!.userId;
 
     const isOwner = await verifyOwnership(userId, restaurantId);
@@ -819,7 +819,7 @@ router.get('/:restaurantId/analytics', async (req: Request, res: Response): Prom
 // GET /dashboard/:restaurantId/analytics/sponsorships - Get sponsorship performance
 router.get('/:restaurantId/analytics/sponsorships', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { restaurantId } = req.params;
+    const { restaurantId } = req.params as { restaurantId: string };
     const userId = req.user!.userId;
 
     const isOwner = await verifyOwnership(userId, restaurantId);
@@ -852,7 +852,7 @@ router.get('/:restaurantId/analytics/sponsorships', async (req: Request, res: Re
         include: { _count: { select: { userCoupons: true } } },
         orderBy: { createdAt: 'desc' },
         take: 10,
-      }),
+      }) as Promise<Array<{ id: string; title: string; coinCost: number; claimedCount: number; isActive: boolean; createdAt: Date; _count: { userCoupons: number } }>>,
     ]);
 
     res.json({
@@ -888,7 +888,7 @@ router.get('/:restaurantId/analytics/sponsorships', async (req: Request, res: Re
 // POST /dashboard/claims/:claimId/reject - Admin: reject a claim
 router.post('/claims/:claimId/reject', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { claimId } = req.params;
+    const { claimId } = req.params as { claimId: string };
     const { rejectionReason } = req.body;
 
     const claim = await prisma.restaurantClaim.findUnique({ where: { id: claimId } });
@@ -925,7 +925,7 @@ router.post('/claims/:claimId/reject', async (req: Request, res: Response): Prom
 // PUT /dashboard/:restaurantId/profile - Update restaurant profile
 router.put('/:restaurantId/profile', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { restaurantId } = req.params;
+    const { restaurantId } = req.params as { restaurantId: string };
     const userId = req.user!.userId;
 
     const isOwner = await verifyOwnership(userId, restaurantId);
@@ -966,7 +966,7 @@ router.put('/:restaurantId/profile', async (req: Request, res: Response): Promis
 // PUT /dashboard/:restaurantId/menu/items - Update a menu item
 router.put('/:restaurantId/menu/items', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { restaurantId } = req.params;
+    const { restaurantId } = req.params as { restaurantId: string };
     const userId = req.user!.userId;
 
     const isOwner = await verifyOwnership(userId, restaurantId);
@@ -1020,7 +1020,7 @@ router.put('/:restaurantId/menu/items', async (req: Request, res: Response): Pro
 // DELETE /dashboard/:restaurantId/menu/items - Delete a menu item
 router.delete('/:restaurantId/menu/items', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { restaurantId } = req.params;
+    const { restaurantId } = req.params as { restaurantId: string };
     const userId = req.user!.userId;
 
     const isOwner = await verifyOwnership(userId, restaurantId);
@@ -1074,7 +1074,7 @@ router.delete('/:restaurantId/menu/items', async (req: Request, res: Response): 
 // DELETE /dashboard/:restaurantId/sponsored-posts/:postId - Delete sponsored post
 router.delete('/:restaurantId/sponsored-posts/:postId', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { restaurantId, postId } = req.params;
+    const { restaurantId, postId } = req.params as { restaurantId: string; postId: string };
     const userId = req.user!.userId;
 
     const isOwner = await verifyOwnership(userId, restaurantId);
@@ -1094,7 +1094,7 @@ router.delete('/:restaurantId/sponsored-posts/:postId', async (req: Request, res
 // PUT /dashboard/:restaurantId/flash-sponsorships/:sponsorshipId - Update flash sponsorship
 router.put('/:restaurantId/flash-sponsorships/:sponsorshipId', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { restaurantId, sponsorshipId } = req.params;
+    const { restaurantId, sponsorshipId } = req.params as { restaurantId: string; sponsorshipId: string };
     const userId = req.user!.userId;
 
     const isOwner = await verifyOwnership(userId, restaurantId);
@@ -1126,7 +1126,7 @@ router.put('/:restaurantId/flash-sponsorships/:sponsorshipId', async (req: Reque
 // PUT /dashboard/:restaurantId/mystery-boxes/:boxId - Update mystery box
 router.put('/:restaurantId/mystery-boxes/:boxId', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { restaurantId, boxId } = req.params;
+    const { restaurantId, boxId } = req.params as { restaurantId: string; boxId: string };
     const userId = req.user!.userId;
 
     const isOwner = await verifyOwnership(userId, restaurantId);
@@ -1157,7 +1157,7 @@ router.put('/:restaurantId/mystery-boxes/:boxId', async (req: Request, res: Resp
 // PUT /dashboard/:restaurantId/coupons/:couponId - Update coupon
 router.put('/:restaurantId/coupons/:couponId', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { restaurantId, couponId } = req.params;
+    const { restaurantId, couponId } = req.params as { restaurantId: string; couponId: string };
     const userId = req.user!.userId;
 
     const isOwner = await verifyOwnership(userId, restaurantId);
@@ -1194,7 +1194,7 @@ router.put('/:restaurantId/coupons/:couponId', async (req: Request, res: Respons
 // POST /dashboard/:restaurantId/analytics/snapshot - Create daily analytics snapshot
 router.post('/:restaurantId/analytics/snapshot', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { restaurantId } = req.params;
+    const { restaurantId } = req.params as { restaurantId: string };
     const userId = req.user!.userId;
 
     const isOwner = await verifyOwnership(userId, restaurantId);
@@ -1269,7 +1269,7 @@ router.post('/:restaurantId/analytics/snapshot', async (req: Request, res: Respo
 // GET /dashboard/:restaurantId/analytics/history - Get analytics history
 router.get('/:restaurantId/analytics/history', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { restaurantId } = req.params;
+    const { restaurantId } = req.params as { restaurantId: string };
     const userId = req.user!.userId;
 
     const isOwner = await verifyOwnership(userId, restaurantId);
@@ -1278,7 +1278,7 @@ router.get('/:restaurantId/analytics/history', async (req: Request, res: Respons
       return;
     }
 
-    const { days = '30' } = req.query;
+    const { days = '30' } = req.query as { days?: string };
     const daysNum = parseInt(days as string);
     const sinceDate = new Date();
     sinceDate.setDate(sinceDate.getDate() - daysNum);

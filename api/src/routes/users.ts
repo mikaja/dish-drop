@@ -9,7 +9,7 @@ const router = Router();
 // GET /users/:userId - Get user profile
 router.get('/:userId', optionalAuth, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { userId } = req.params;
+    const { userId } = req.params as { userId: string };
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -72,7 +72,7 @@ router.get('/:userId', optionalAuth, async (req: Request, res: Response): Promis
 // PUT /users/:userId - Update user profile
 router.put('/:userId', authMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { userId } = req.params;
+    const { userId } = req.params as { userId: string };
 
     // Can only update own profile
     if (req.user!.userId !== userId) {
@@ -118,8 +118,8 @@ router.put('/:userId', authMiddleware, async (req: Request, res: Response): Prom
 // GET /users/:userId/posts - Get user's posts
 router.get('/:userId/posts', optionalAuth, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { userId } = req.params;
-    const { cursor, limit = '20' } = req.query;
+    const { userId } = req.params as { userId: string };
+    const { cursor, limit = '20' } = req.query as { cursor?: string; limit?: string };
 
     const posts = await prisma.post.findMany({
       where: {
@@ -167,8 +167,8 @@ router.get('/:userId/posts', optionalAuth, async (req: Request, res: Response): 
 // GET /users/:userId/likes - Get user's liked posts
 router.get('/:userId/likes', optionalAuth, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { userId } = req.params;
-    const { cursor, limit = '20' } = req.query;
+    const { userId } = req.params as { userId: string };
+    const { cursor, limit = '20' } = req.query as { cursor?: string; limit?: string };
 
     // Check if user allows viewing likes (private by default)
     const user = await prisma.user.findUnique({
@@ -219,7 +219,7 @@ router.get('/:userId/likes', optionalAuth, async (req: Request, res: Response): 
           },
         },
       },
-    });
+    }) as Array<{ id: string; createdAt: Date; post: unknown }>;
 
     const hasMore = likes.length > parseInt(limit as string);
     if (hasMore) likes.pop();
@@ -237,8 +237,8 @@ router.get('/:userId/likes', optionalAuth, async (req: Request, res: Response): 
 // GET /users/:userId/followers - Get user's followers
 router.get('/:userId/followers', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { userId } = req.params;
-    const { cursor, limit = '20' } = req.query;
+    const { userId } = req.params as { userId: string };
+    const { cursor, limit = '20' } = req.query as { cursor?: string; limit?: string };
 
     const followers = await prisma.follow.findMany({
       where: { followingId: userId },
@@ -258,7 +258,7 @@ router.get('/:userId/followers', async (req: Request, res: Response): Promise<vo
           },
         },
       },
-    });
+    }) as Array<{ id: string; createdAt: Date; follower: unknown }>;
 
     const hasMore = followers.length > parseInt(limit as string);
     if (hasMore) followers.pop();
@@ -276,8 +276,8 @@ router.get('/:userId/followers', async (req: Request, res: Response): Promise<vo
 // GET /users/:userId/following - Get users the user follows
 router.get('/:userId/following', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { userId } = req.params;
-    const { cursor, limit = '20' } = req.query;
+    const { userId } = req.params as { userId: string };
+    const { cursor, limit = '20' } = req.query as { cursor?: string; limit?: string };
 
     const following = await prisma.follow.findMany({
       where: { followerId: userId },
@@ -297,7 +297,7 @@ router.get('/:userId/following', async (req: Request, res: Response): Promise<vo
           },
         },
       },
-    });
+    }) as Array<{ id: string; createdAt: Date; following: unknown }>;
 
     const hasMore = following.length > parseInt(limit as string);
     if (hasMore) following.pop();
@@ -315,7 +315,7 @@ router.get('/:userId/following', async (req: Request, res: Response): Promise<vo
 // POST /users/:userId/follow - Follow a user
 router.post('/:userId/follow', authMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { userId } = req.params;
+    const { userId } = req.params as { userId: string };
     const followerId = req.user!.userId;
 
     if (followerId === userId) {
@@ -355,7 +355,7 @@ router.post('/:userId/follow', authMiddleware, async (req: Request, res: Respons
 // DELETE /users/:userId/follow - Unfollow a user
 router.delete('/:userId/follow', authMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { userId } = req.params;
+    const { userId } = req.params as { userId: string };
     const followerId = req.user!.userId;
 
     await prisma.follow.delete({
@@ -377,7 +377,7 @@ router.delete('/:userId/follow', authMiddleware, async (req: Request, res: Respo
 // POST /users/:userId/block - Block a user
 router.post('/:userId/block', authMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { userId: blockedId } = req.params;
+    const { userId: blockedId } = req.params as { userId: string };
     const userId = req.user!.userId;
 
     if (userId === blockedId) {
@@ -422,7 +422,7 @@ router.post('/:userId/block', authMiddleware, async (req: Request, res: Response
 // DELETE /users/:userId/block - Unblock a user
 router.delete('/:userId/block', authMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { userId: blockedId } = req.params;
+    const { userId: blockedId } = req.params as { userId: string };
     const userId = req.user!.userId;
 
     await prisma.blockedUser.delete({

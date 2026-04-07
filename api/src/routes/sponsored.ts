@@ -13,7 +13,7 @@ const router = Router();
 // This replaces the mock data in the mobile app explore page
 router.get('/feed', optionalAuth, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { lat, lng } = req.query;
+    const { lat, lng } = req.query as { lat?: string; lng?: string };
 
     // Budget check is done in-memory after fetch since Prisma can't compare two columns
 
@@ -147,7 +147,7 @@ router.get('/feed', optionalAuth, async (req: Request, res: Response): Promise<v
 // POST /sponsored/:id/click - Record a click on a sponsored post (PPC billing)
 router.post('/:id/click', optionalAuth, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { id } = req.params;
+    const { id } = req.params as { id: string };
 
     const sponsoredPost = await prisma.sponsoredPost.findUnique({ where: { id } });
     if (!sponsoredPost) {
@@ -188,7 +188,7 @@ router.post('/:id/click', optionalAuth, async (req: Request, res: Response): Pro
 // POST /sponsored/:id/reserve - Record a reservation action
 router.post('/:id/reserve', optionalAuth, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { id } = req.params;
+    const { id } = req.params as { id: string };
 
     await prisma.sponsoredPost.update({
       where: { id },
@@ -209,7 +209,7 @@ router.post('/:id/reserve', optionalAuth, async (req: Request, res: Response): P
 // GET /sponsored/mystery-boxes - Get today's active mystery boxes near user
 router.get('/mystery-boxes', optionalAuth, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { lat, lng } = req.query;
+    const { lat, lng } = req.query as { lat?: string; lng?: string };
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -276,7 +276,7 @@ router.get('/mystery-boxes', optionalAuth, async (req: Request, res: Response): 
 // POST /sponsored/mystery-boxes/:id/claim - Claim a mystery box
 router.post('/mystery-boxes/:id/claim', authMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { id } = req.params;
+    const { id } = req.params as { id: string };
     const userId = req.user!.userId;
 
     const mysteryBox = await prisma.mysteryBox.findUnique({
@@ -286,7 +286,7 @@ router.post('/mystery-boxes/:id/claim', authMiddleware, async (req: Request, res
           select: { id: true, name: true, slug: true, logoUrl: true },
         },
       },
-    });
+    }) as (Awaited<ReturnType<typeof prisma.mysteryBox.findUnique>> & { restaurant?: { id: string; name: string; slug: string; logoUrl: string | null } }) | null;
 
     if (!mysteryBox) {
       res.status(404).json({ error: 'Mystery box not found' });

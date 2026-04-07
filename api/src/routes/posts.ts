@@ -19,7 +19,17 @@ router.get('/', optionalAuth, async (req: Request, res: Response): Promise<void>
       cuisineType,
       cursor,
       limit = '20',
-    } = req.query;
+    } = req.query as {
+      feed?: string;
+      lat?: string;
+      lng?: string;
+      radius?: string;
+      userId?: string;
+      restaurantId?: string;
+      cuisineType?: string;
+      cursor?: string;
+      limit?: string;
+    };
 
     let whereClause: Record<string, unknown> = { isPrivate: false };
 
@@ -372,7 +382,7 @@ router.post('/', authMiddleware, async (req: Request, res: Response): Promise<vo
 // GET /posts/:postId - Get single post
 router.get('/:postId', optionalAuth, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { postId } = req.params;
+    const { postId } = req.params as { postId: string };
 
     const post = await prisma.post.findUnique({
       where: { id: postId },
@@ -444,7 +454,7 @@ router.get('/:postId', optionalAuth, async (req: Request, res: Response): Promis
 // DELETE /posts/:postId - Delete post
 router.delete('/:postId', authMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { postId } = req.params;
+    const { postId } = req.params as { postId: string };
 
     const post = await prisma.post.findUnique({
       where: { id: postId },
@@ -495,7 +505,7 @@ router.delete('/:postId', authMiddleware, async (req: Request, res: Response): P
 // POST /posts/:postId/like - Like a post
 router.post('/:postId/like', authMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { postId } = req.params;
+    const { postId } = req.params as { postId: string };
     const userId = req.user!.userId;
 
     // Check if already liked
@@ -526,7 +536,7 @@ router.post('/:postId/like', authMiddleware, async (req: Request, res: Response)
 // DELETE /posts/:postId/like - Unlike a post
 router.delete('/:postId/like', authMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { postId } = req.params;
+    const { postId } = req.params as { postId: string };
     const userId = req.user!.userId;
 
     await prisma.$transaction([
@@ -549,7 +559,7 @@ router.delete('/:postId/like', authMiddleware, async (req: Request, res: Respons
 // POST /posts/:postId/save - Save a post
 router.post('/:postId/save', authMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { postId } = req.params;
+    const { postId } = req.params as { postId: string };
     const { collectionId } = req.body;
     const userId = req.user!.userId;
 
@@ -598,7 +608,7 @@ router.post('/:postId/save', authMiddleware, async (req: Request, res: Response)
 // DELETE /posts/:postId/save - Unsave a post
 router.delete('/:postId/save', authMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { postId } = req.params;
+    const { postId } = req.params as { postId: string };
     const userId = req.user!.userId;
 
     await prisma.$transaction([
@@ -621,8 +631,8 @@ router.delete('/:postId/save', authMiddleware, async (req: Request, res: Respons
 // GET /posts/:postId/comments - Get comments for a post
 router.get('/:postId/comments', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { postId } = req.params;
-    const { cursor, limit = '50' } = req.query;
+    const { postId } = req.params as { postId: string };
+    const { cursor, limit = '50' } = req.query as { cursor?: string; limit?: string };
 
     const comments = await prisma.comment.findMany({
       where: { postId, parentId: null },
@@ -656,7 +666,7 @@ router.get('/:postId/comments', async (req: Request, res: Response): Promise<voi
 // POST /posts/:postId/comments - Add a comment
 router.post('/:postId/comments', authMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { postId } = req.params;
+    const { postId } = req.params as { postId: string };
     const { content, parentId } = req.body;
     const userId = req.user!.userId;
 

@@ -8,7 +8,12 @@ const router = Router();
 // GET /teams - List all teams
 router.get('/', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { type, search, cursor, limit = '20' } = req.query;
+    const { type, search, cursor, limit = '20' } = req.query as {
+      type?: string;
+      search?: string;
+      cursor?: string;
+      limit?: string;
+    };
 
     let whereClause: Record<string, unknown> = {};
 
@@ -56,7 +61,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
 // GET /teams/leaderboard - Get team leaderboard
 router.get('/leaderboard', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { type, limit = '20' } = req.query;
+    const { type, limit = '20' } = req.query as { type?: string; limit?: string };
 
     let whereClause: Record<string, unknown> = {};
 
@@ -95,7 +100,7 @@ router.get('/leaderboard', async (req: Request, res: Response): Promise<void> =>
 // GET /teams/:teamId - Get team details
 router.get('/:teamId', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { teamId } = req.params;
+    const { teamId } = req.params as { teamId: string };
 
     // Try by ID first, then by slug
     let team = await prisma.team.findUnique({
@@ -140,8 +145,8 @@ router.get('/:teamId', async (req: Request, res: Response): Promise<void> => {
 // GET /teams/:teamId/members - Get team members
 router.get('/:teamId/members', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { teamId } = req.params;
-    const { cursor, limit = '20' } = req.query;
+    const { teamId } = req.params as { teamId: string };
+    const { cursor, limit = '20' } = req.query as { cursor?: string; limit?: string };
 
     const members = await prisma.user.findMany({
       where: { teamId },
@@ -175,7 +180,7 @@ router.get('/:teamId/members', async (req: Request, res: Response): Promise<void
 // POST /teams/:teamId/join - Join a team
 router.post('/:teamId/join', authMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { teamId } = req.params;
+    const { teamId } = req.params as { teamId: string };
     const userId = req.user!.userId;
 
     const team = await prisma.team.findUnique({
@@ -234,7 +239,7 @@ router.post('/:teamId/join', authMiddleware, async (req: Request, res: Response)
 // DELETE /teams/:teamId/leave - Leave a team
 router.delete('/:teamId/leave', authMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { teamId } = req.params;
+    const { teamId } = req.params as { teamId: string };
     const userId = req.user!.userId;
 
     const user = await prisma.user.findUnique({

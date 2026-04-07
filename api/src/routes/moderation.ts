@@ -81,7 +81,11 @@ router.post('/reports', authMiddleware, async (req: Request, res: Response): Pro
 // GET /moderation/reports - List reports (admin)
 router.get('/reports', authMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { status, page = '1', limit = '20' } = req.query;
+    const { status, page = '1', limit = '20' } = req.query as {
+      status?: string;
+      page?: string;
+      limit?: string;
+    };
 
     const where: any = {};
     if (status && typeof status === 'string') {
@@ -116,7 +120,7 @@ router.get('/reports', authMiddleware, async (req: Request, res: Response): Prom
 // PUT /moderation/reports/:reportId - Update report status
 router.put('/reports/:reportId', authMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { reportId } = req.params;
+    const { reportId } = req.params as { reportId: string };
     const { status } = req.body;
 
     if (!['reviewed', 'resolved', 'dismissed'].includes(status)) {
